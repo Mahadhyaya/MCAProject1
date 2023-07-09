@@ -1,0 +1,291 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sb 
+import io
+from sklearn.linear_model import LinearRegression
+from scipy import stats
+import statsmodels.api as sm
+
+
+
+df = pd.read_csv('AppDetails1.csv')
+
+#cleaning
+df["ApplicationName"] = df["ApplicationName"].fillna('Others')
+avg = df['NumberOfTimesAppsOpened'].mean()
+df['NumberOfNotifications'] = df['NumberOfNotifications'].fillna(df['NumberOfNotifications'].mean())
+df['NumberOfTimesAppsOpened'] = df['NumberOfTimesAppsOpened'].fillna(avg)
+df['NumberOfTimesAppsOpened'] = df['NumberOfTimesAppsOpened'].astype(int)
+df['NumberOfNotifications'] = df['NumberOfNotifications'].astype(int)
+df['UsageOfApplicationsInNumbers'] = df['UsageOfApplicationsInNumbers'].fillna(df['UsageOfApplicationsInNumbers'].mean())
+df['UsageOfApplicationsInNumbers'] = df['UsageOfApplicationsInNumbers'].astype(int)
+print(df)
+print("length" , len(df))
+# df['MentalStressLevel'] = df['MentalStressLevel']  # Replace with your own stress level values
+
+#ManSwasth Algorithm                      
+
+def ManSwasth(df):
+#     print('hii', df['MentalStressLevel'])
+    print('col', df.columns)
+    mentalStress = list(range(len(df)));
+    df['NumberOfTimesAppsOpened'] = df['NumberOfTimesAppsOpened'].astype(int)
+#     df['MentalStressLevel'] = df['MentalStressLevel'].astype(int)
+    df['NumberOfNotifications'] = df['NumberOfNotifications'].astype(int)
+    global key
+    global value
+    global dat
+    fcount = 0
+    tcount = 0
+    icount = 0
+    ocount = 0
+    gcount = 0
+    ycount = 0
+    fnote = 0
+    tnote = 0
+    inote = 0
+    onote = 0
+    gnote = 0
+    ynote = 0
+    for index, row in df.iterrows():
+      if row["ApplicationName"] == "Facebook":
+        fnote += row['NumberOfNotifications']
+        fcount += row["NumberOfTimesAppsOpened"]
+      elif row["ApplicationName"] == "Twitter":
+        tnote += row['NumberOfNotifications']
+        tcount += row["NumberOfTimesAppsOpened"]
+      elif row["ApplicationName"] == "Instagram":
+        inote += row['NumberOfNotifications']
+        icount += row["NumberOfTimesAppsOpened"]
+      elif row["ApplicationName"] == "Others":
+        onote += row['NumberOfNotifications']
+        ocount += row["NumberOfTimesAppsOpened"]
+      elif row["ApplicationName"] == "Google":
+        gnote += row['NumberOfNotifications']
+        gcount += row["NumberOfTimesAppsOpened"]
+      elif row["ApplicationName"] == "Youtube":
+        ynote += row['NumberOfNotifications']
+        ycount += row["NumberOfTimesAppsOpened"]
+        
+
+        
+    for i, r in df.iterrows():
+        mentalStress[i] = (r['NumberOfNotifications'] + r['NumberOfTimesAppsOpened']) / 2
+        
+    print('ms', mentalStress[0])
+    
+#     for s, k in df.iterrows():
+    df['MentalStress'] = mentalStress
+     
+    l = [fcount, tcount, icount, ocount, gcount, ycount]
+    r = [fnote, tnote, inote, onote, gnote, ynote]
+    
+    y = np.array(l)
+    dat = {"FACEBOOK":fcount, "TWITTER":tcount, "INSTAGRAM":icount, "OTHERS":ocount, "GOOGLE":gcount, "YOUTUBE":ycount}
+    key = list(dat.keys())
+    value = list(dat.values())
+    print("The average usage of number of times apps used in a day is:", int(df["NumberOfTimesAppsOpened"].mean()))
+
+    #representation
+    
+    
+    plt.plot(df['NumberOfTimesAppsOpened'], df['ApplicationName'], color='Green', marker = 'p')
+    plt.grid(True)
+    print("Psychological Behaviour:")
+    plt.title('NumberOfTimesAppsOpened vs ApplicationName')
+    plt.ylabel('ApplicationName')
+    plt.xlabel(' NumberOfTimesAppsOpened')
+    plt.show()
+
+    print(pd.DataFrame(l, index=['Facebook', 'Twitter', 'Instagram', 'Others', 'Google', 'Youtube'], columns = ['NumberOfTimesAppsOpened']))
+    print(pd.DataFrame(r, index=['Facebook', 'Twitter', 'Instagram', 'Others', 'Google', 'Youtube'], columns = ['NumberOfNotifications']))
+    label = ['Facebook', 'Twitter', 'Instagram', 'Others', 'Google', "Youtube"]
+    plt.title("More Number Of Times Opened Application")
+    plt.pie(y, labels = label, startangle = 120)
+    plt.show()
+    
+    print('Mental Stress Plot')
+    plt.scatter(df['NumberOfTimesAppsOpened'], df['UsageOfApplicationsInNumbers'], c=df['MentalStress'], cmap='coolwarm')
+    
+#     plt.scatter(df['NumberOfTimesAppsOpened'], df['UsageOfApplicationsInNumbers'], c=df['MentalStressLevel'], cmap='coolwarm')
+    plt.colorbar(label='Mental Stress Level')
+    plt.title('NumberOfTimesAppsOpened vs NumberOfNotifications')
+    plt.xlabel('Number of Notifications')
+    plt.ylabel('Usage of Applications')
+    plt.show()
+    
+    
+#     correlation coefficients
+    numberoftimes = df['NumberOfTimesAppsOpened']
+    usage = df['NumberOfNotifications']
+#     stress = df['MentalStressLevel']
+    stress = df['MentalStress']
+
+    correlation = np.corrcoef([numberoftimes, usage, stress])
+    print(correlation)
+    
+    
+    #Statistical Test For Corelation
+    correlation, p_value = stats.pearsonr(df['NumberOfTimesAppsOpened'], df['NumberOfNotifications'])
+    print("Correlation:", correlation)
+    print("p-value:", p_value)
+    
+    
+    X = df[['NumberOfNotifications']]  # Independent variable(s)
+    y = df['UsageOfApplicationsInNumbers']  # Dependent variable
+    
+    X = sm.add_constant(X)
+
+    model = sm.OLS(y, X)  # OLS stands for Ordinary Least Squares
+    result = model.fit()
+
+    print(result.summary())
+
+#     # Make predictions on the test data
+    predicted_y_test = result.predict(X)
+
+#     # Calculate RMSE
+#     rmse = np.sqrt(mean_squared_error(y, predicted_y_test))
+#     print('RMSE:', rmse)
+
+#     # Get the R-squared value from the regression results
+#     r_squared = result.rsquared
+#     print('R-squared:', r_squared)
+    
+    valt = [63, 73, 85]
+    valt.reverse()
+    data = {'values':valt, 'who':[32, 42, 61]}
+    df = pd.DataFrame(data)
+    plt.plot(df['values'], df['who'], color='red')
+    plt.title("Psychological Behaviour")
+    plt.xlabel('Mean Values')
+    plt.ylabel('Mean WHO observations')
+    plt.show()
+    
+    
+
+    
+    
+data = pd.read_csv('CleanedData.csv')
+#Training The DataSet Using Simple Linear Regression
+ManSwasth(df)
+train_mean = df["NumberOfTimesAppsOpened"].mean()
+train_notification = df["NumberOfNotifications"].mean()
+train_used = df["UsageOfApplicationsInNumbers"].mean()
+train_psyco = (train_mean + train_notification + train_used) // 3
+trains1 = [train_mean, train_notification]
+trains2 = [train_used, train_psyco]
+
+model = LinearRegression()
+X = data['NumberOfNotifications'].values.reshape(-1, 1) # Input features
+y = data['UsageOfApplicationsInNumbers'].values # Output variable
+
+model.fit(X, y) # Train the model on the input features and output variable
+score = model.score(X, y) # Calculate the R-squared value
+
+
+# Plotting the training data points
+plt.scatter(X, y, color='blue', label='Training Data')
+
+# Plotting the linear regression line
+plt.plot(X, model.predict(X), color='red', label='Linear Regression')
+
+plt.title('Linear Regression')
+plt.xlabel('Number of Notifications')
+plt.ylabel('Usage of Applications in Numbers')
+plt.legend()
+plt.show()
+
+
+#Testing The DataSet
+dd = pd.read_csv('CleanedData.csv')
+ManSwasth(dd)
+test_mean = dd["NumberOfTimesAppsOpened"].mean()
+test_notification = dd["NumberOfNotifications"].mean()
+test_used = dd["UsageOfApplicationsInNumbers"].mean()
+test_psyco = (test_mean + test_notification + test_used) // 3
+tests1 = [test_mean, test_notification]
+tests2 = [test_used, test_psyco]
+
+new_X = X # New input features (number of hours studied)
+predicted_y = model.predict(new_X) # Predict the output variable (score achieved)
+print("Predicted Values Based On notifications")
+
+# Plotting the training data points
+plt.scatter(X, y, color='blue', label='Training Data')
+
+# Plotting the linear regression line
+plt.plot(X, model.predict(X), color='red', label='Linear Regression')
+
+# Plotting the predicted values
+plt.scatter(new_X, predicted_y, color='green', label='Predicted Values')
+
+plt.title('Linear Regression')
+plt.xlabel('Number of Notifications')
+plt.ylabel('Usage of Applications in Numbers')
+plt.legend()
+plt.show()
+    
+    
+    
+# Mail
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
+smtp_server = 'smtp.gmail.com'
+smtp_port = 587  # Default port for most SMTP servers
+sender_email = 'mhsooryakumar8@gmail.com'
+recipient_email = 'mhsooryakumar8@gmail.com'
+
+message = MIMEMultipart()
+message['From'] = sender_email
+message['To'] = recipient_email
+message['Subject'] = 'Recieved'
+
+email_body = f"Plese visit our website http://127.0.0.1:5501/login.html"
+message.attach(MIMEText(email_body, 'plain'))
+
+attachment_path = './reduce-screen-time.pdf'
+
+
+
+with open(attachment_path, 'rb') as attachment:
+    part = MIMEBase('application', 'octet-stream')
+    part.set_payload(attachment.read())
+    encoders.encode_base64(part)
+    part.add_header('Content-Disposition', f'attachment; filename="{attachment_path}"')
+    message.attach(part)
+
+
+with smtplib.SMTP(smtp_server, smtp_port) as server:
+    server.starttls()
+    server.login(sender_email, 'fnssemlyqhtxwyqd')  
+
+    server.send_message(message)
+
+
+
+    
+#Conclusion
+
+print("Observations are:\nThe difference observed in the Number of times apps opened is:", train_mean - test_mean)
+print("The difference in the Psycological behaviour of the community:", train_psyco - test_psyco)
+plt.plot(trains1, tests1, label = "train")
+plt.plot(trains2, tests2, label = "test")
+plt.legend()
+plt.show()
+
+print("Ranks of the applications in the Tested dataset:")
+fig = plt.figure(figsize = (10, 8))
+plt.bar(key, value, color = "maroon", width = 0.2)
+plt.xlabel("Applications")
+plt.ylabel("Usage")
+plt.title("Rank")
+plt.show()
+
+value.sort()
+print("The Mostly Used Application is:", list(dat.keys())[list(dat.values()).index(value[len(value) - 1])])
+
